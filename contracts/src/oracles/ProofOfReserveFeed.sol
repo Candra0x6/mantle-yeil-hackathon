@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {IProofOfReserveFeed} from "src/interfaces/IProofOfReserveFeed.sol";
+import {IProofOfReserveFeed} from "../interfaces/IProofOfReserveFeed.sol";
 
 contract ProofOfReserveFeed is IProofOfReserveFeed {
     event ReservesUpdated(uint256 newReserve, uint256 timestamp);
