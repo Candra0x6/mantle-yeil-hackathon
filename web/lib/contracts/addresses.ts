@@ -9,18 +9,18 @@ export interface ContractAddresses {
 export const CONTRACT_ADDRESSES: Record<number, ContractAddresses> = {
   // Localhost (Anvil)
   [localhost.id]: {
-    yeil: '0xA15BB66138824a1c7167f5E85b957d04Dd34E468', // Deployed Yeil Token
-    proofOfReserveFeed: '0x700b6A60ce7EaaEA56F065753d8dcB9653dbAD35', // Deployed ProofOfReserveFeed
+    yeil: process.env.NEXT_PUBLIC_YIEL_CONTRACTS_ADDRESS as `0x${string}`, // Deployed Yeil Token
+    proofOfReserveFeed: process.env.NEXT_PUBLIC_PROOF_OF_RESERVE_FEED_ADDRESS as `0x${string}`, // Deployed ProofOfReserveFeed
   },
   // Mantle Mainnet
   [mantle.id]: {
-    yeil: '0x0000000000000000000000000000000000000000', // Replace with deployed address
-    proofOfReserveFeed: '0x0000000000000000000000000000000000000000', // Replace with deployed address
+    yeil: process.env.NEXT_PUBLIC_YEIL_CONTRACTS_ADDRESS as `0x${string}`, // Replace with deployed address
+    proofOfReserveFeed: process.env.NEXT_PUBLIC_PROOF_OF_RESERVE_FEED_ADDRESS as `0x${string}`, // Replace with deployed address
   },
   // Mantle Sepolia Testnet
   [mantleSepolia.id]: {
-    yeil: '0x0000000000000000000000000000000000000000', // Replace with deployed address
-    proofOfReserveFeed: '0x0000000000000000000000000000000000000000', // Replace with deployed address
+    yeil: process.env.NEXT_PUBLIC_YEIL_CONTRACTS_ADDRESS as `0x${string}`, // Replace with deployed address
+    proofOfReserveFeed: process.env.NEXT_PUBLIC_PROOF_OF_RESERVE_FEED_ADDRESS as `0x${string}`, // Replace with deployed address
   },
 }
 

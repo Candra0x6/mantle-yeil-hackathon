@@ -163,29 +163,32 @@ export function useYeilTotalSupplyAt(snapshotId?: number) {
 
 // Hook for minting tokens (owner only)
 export function useYeilMint() {
-  const { writeContract, data: hash, isPending, error } = useWriteContract()
+  const { writeContractAsync, data: hash, isPending, error } = useWriteContract()
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
   const { chainId } = useAccount()
   const contractAddress = getYeilAddress(chainId)
 
-  const mint = 
+  const mint = useCallback(
     async (to: `0x${string}`, amount: string) => {
       if (!contractAddress) throw new Error('Contract address not found for this network')
       
       try {
-        await writeContract({
+        // Use writeContractAsync which simulates first and returns a promise
+        const txHash = await writeContractAsync({
           address: contractAddress,
           abi: YEIL_ABI,
           functionName: 'mint',
           args: [to, parseEther(amount)],
         })
+        
+        return txHash
       } catch (err) {
         console.error('Mint error:', err)
         throw err
       }
-    }
-    
-  
+    },
+    [contractAddress, writeContractAsync]
+  )
 
   return {
     mint,
@@ -199,7 +202,7 @@ export function useYeilMint() {
 
 // Hook for burning tokens (owner only)
 export function useYeilBurn() {
-  const { writeContract, data: hash, isPending, error } = useWriteContract()
+  const { writeContractAsync, data: hash, isPending, error } = useWriteContract()
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
   const { chainId } = useAccount()
   const contractAddress = getYeilAddress(chainId)
@@ -209,18 +212,20 @@ export function useYeilBurn() {
       if (!contractAddress) throw new Error('Contract address not found for this network')
       
       try {
-        await writeContract({
+        const txHash = await writeContractAsync({
           address: contractAddress,
           abi: YEIL_ABI,
           functionName: 'burn',
           args: [from, parseEther(amount)],
         })
+        
+        return txHash
       } catch (err) {
         console.error('Burn error:', err)
         throw err
       }
     },
-    [contractAddress, writeContract]
+    [contractAddress, writeContractAsync]
   )
 
   return {
@@ -235,7 +240,7 @@ export function useYeilBurn() {
 
 // Hook for creating snapshot (owner only)
 export function useYeilSnapshot() {
-  const { writeContract, data: hash, isPending, error } = useWriteContract()
+  const { writeContractAsync, data: hash, isPending, error } = useWriteContract()
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
   const { chainId } = useAccount()
   const contractAddress = getYeilAddress(chainId)
@@ -244,16 +249,18 @@ export function useYeilSnapshot() {
     if (!contractAddress) throw new Error('Contract address not found for this network')
     
     try {
-      await writeContract({
+      const txHash = await writeContractAsync({
         address: contractAddress,
         abi: YEIL_ABI,
         functionName: 'snapshot',
       })
+      
+      return txHash
     } catch (err) {
       console.error('Snapshot error:', err)
       throw err
     }
-  }, [contractAddress, writeContract])
+  }, [contractAddress, writeContractAsync])
 
   return {
     createSnapshot,
@@ -267,7 +274,7 @@ export function useYeilSnapshot() {
 
 // Hook for ERC20 transfer
 export function useYeilTransfer() {
-  const { writeContract, data: hash, isPending, error } = useWriteContract()
+  const { writeContractAsync, data: hash, isPending, error } = useWriteContract()
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
   const { chainId } = useAccount()
   const contractAddress = getYeilAddress(chainId)
@@ -277,18 +284,20 @@ export function useYeilTransfer() {
       if (!contractAddress) throw new Error('Contract address not found for this network')
       
       try {
-        await writeContract({
+        const txHash = await writeContractAsync({
           address: contractAddress,
           abi: YEIL_ABI,
           functionName: 'transfer',
           args: [to, parseEther(amount)],
         })
+        
+        return txHash
       } catch (err) {
         console.error('Transfer error:', err)
         throw err
       }
     },
-    [contractAddress, writeContract]
+    [contractAddress, writeContractAsync]
   )
 
   return {
@@ -303,7 +312,7 @@ export function useYeilTransfer() {
 
 // Hook for ERC20 approve
 export function useYeilApprove() {
-  const { writeContract, data: hash, isPending, error } = useWriteContract()
+  const { writeContractAsync, data: hash, isPending, error } = useWriteContract()
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
   const { chainId } = useAccount()
   const contractAddress = getYeilAddress(chainId)
@@ -313,18 +322,20 @@ export function useYeilApprove() {
       if (!contractAddress) throw new Error('Contract address not found for this network')
       
       try {
-        await writeContract({
+        const txHash = await writeContractAsync({
           address: contractAddress,
           abi: YEIL_ABI,
           functionName: 'approve',
           args: [spender, parseEther(amount)],
         })
+        
+        return txHash
       } catch (err) {
         console.error('Approve error:', err)
         throw err
       }
     },
-    [contractAddress, writeContract]
+    [contractAddress, writeContractAsync]
   )
 
   return {

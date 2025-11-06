@@ -12,7 +12,7 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ConnectWallet } from '@/components/connect-wallet'
 import { DebugInfo } from '@/components/debug-info'
-import { useYeilContract, useYeilBalanceAt, useYeilTotalSupplyAt } from '@/hooks/use-yeil-contract'
+import { useYeilContract, useYeilBalanceAt, useYeilTotalSupplyAt, useYeilMint } from '@/hooks/use-yeil-contract'
 import { 
   Loader2, 
   CheckCircle2, 
@@ -55,9 +55,10 @@ export default function YeilDashboard() {
   
   const { balance: balanceAtSnapshot, isLoading: isLoadingSnapshot } = useYeilBalanceAt(address, snapshotId)
   const { totalSupply: totalSupplyAtSnapshot, isLoading: isLoadingTotalSupply } = useYeilTotalSupplyAt(snapshotId)
-  console.log('Snapshot Balance:', totalSupplyAtSnapshot)
   const handleTransfer = async () => {
     if (!transferTo || !transferAmount) return
+    if (transferState.isPending || transferState.isConfirming) return // Prevent double-click
+    
     try {
       await transfer(transferTo as `0x${string}`, transferAmount)
       setTransferTo('')
@@ -69,13 +70,10 @@ export default function YeilDashboard() {
 
   const handleMint = async () => {
     if (!mintTo || !mintAmount) return
+    if (mintState.isPending || mintState.isConfirming) return // Prevent double-click
+    
     try {
-      await writeContract({
-        address: "0xA15BB66138824a1c7167f5E85b957d04Dd34E468",
-        abi: YEIL_ABI,
-        functionName: 'mint',
-        args: [mintTo, parseEther(mintAmount)],
-      })
+      await mint(mintTo as `0x${string}`, mintAmount)
       setMintTo('')
       setMintAmount('')
     } catch (err) {
@@ -84,6 +82,8 @@ export default function YeilDashboard() {
   }
 
   const handleSnapshot = async () => {
+    if (snapshotState.isPending || snapshotState.isConfirming) return // Prevent double-click
+    
     try {
       await createSnapshot()
     } catch (err) {
