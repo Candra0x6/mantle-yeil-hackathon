@@ -35,43 +35,43 @@ export function useYeilTokenInfo() {
     address: contractAddress,
     abi: YEIL_ABI,
     functionName: 'getTokenName',
-  })
+  }) as { data: string | undefined; isLoading: boolean }
 
   const { data: symbol, isLoading: isLoadingSymbol } = useReadContract({
     address: contractAddress,
     abi: YEIL_ABI,
     functionName: 'getTokenSymbol',
-  })
+  }) as { data: string | undefined; isLoading: boolean }
 
   const { data: decimals, isLoading: isLoadingDecimals } = useReadContract({
     address: contractAddress,
     abi: YEIL_ABI,
     functionName: 'decimals',
-  })
+  }) as { data: number | undefined; isLoading: boolean }
 
   const { data: totalSupply, isLoading: isLoadingTotalSupply, refetch: refetchTotalSupply } = useReadContract({
     address: contractAddress,
     abi: YEIL_ABI,
     functionName: 'totalSupply',
-  })
+  }) as { data: bigint | undefined; isLoading: boolean; refetch: () => void }
 
   const { data: verifiedReserves, isLoading: isLoadingReserves, refetch: refetchReserves } = useReadContract({
     address: contractAddress,
     abi: YEIL_ABI,
     functionName: 'getVerifiedReserves',
-  })
+  }) as { data: bigint | undefined; isLoading: boolean; refetch: () => void }
 
   const { data: isFullyBacked, isLoading: isLoadingBacked, refetch: refetchBacked } = useReadContract({
     address: contractAddress,
     abi: YEIL_ABI,
     functionName: 'isFullyBacked',
-  })
+  }) as { data: boolean | undefined; isLoading: boolean; refetch: () => void }
 
   const { data: proofOfReserveFeedAddress } = useReadContract({
     address: contractAddress,
     abi: YEIL_ABI,
     functionName: 'getProofOfReserveAddress',
-  })
+  }) as { data: `0x${string}` | undefined }
 
   const isLoading = isLoadingName || isLoadingSymbol || isLoadingDecimals || 
                    isLoadingTotalSupply || isLoadingReserves || isLoadingBacked
@@ -109,7 +109,7 @@ export function useYeilBalance(address?: `0x${string}`) {
     abi: YEIL_ABI,
     functionName: 'getBalance',
     args: address ? [address] : undefined,
-  })
+  }) as { data: bigint | undefined; isLoading: boolean; refetch: () => void }
 
   const balanceData: YeilBalance | undefined = balance !== undefined ? {
     balance,
@@ -133,7 +133,7 @@ export function useYeilBalanceAt(address?: `0x${string}`, snapshotId?: number) {
     abi: YEIL_ABI,
     functionName: 'balanceOfAt',
     args: address && snapshotId !== undefined ? [address, BigInt(snapshotId)] : undefined,
-  })
+  }) as { data: bigint | undefined; isLoading: boolean }
 
   return {
     balance: balance || 0n,
@@ -152,7 +152,7 @@ export function useYeilTotalSupplyAt(snapshotId?: number) {
     abi: YEIL_ABI,
     functionName: 'totalSupplyAt',
     args: snapshotId !== undefined ? [BigInt(snapshotId)] : undefined,
-  })
+  }) as { data: bigint | undefined; isLoading: boolean }
 
   return {
     totalSupply: totalSupply || 0n,
@@ -358,7 +358,7 @@ export function useYeilAllowance(owner?: `0x${string}`, spender?: `0x${string}`)
     abi: YEIL_ABI,
     functionName: 'allowance',
     args: owner && spender ? [owner, spender] : undefined,
-  })
+  }) as { data: bigint | undefined; isLoading: boolean; refetch: () => void }
 
   return {
     allowance: allowance || 0n,

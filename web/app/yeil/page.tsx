@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useAccount, useWriteContract } from 'wagmi'
+import { useAccount } from 'wagmi'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,7 +12,7 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ConnectWallet } from '@/components/connect-wallet'
 import { DebugInfo } from '@/components/debug-info'
-import { useYeilContract, useYeilBalanceAt, useYeilTotalSupplyAt, useYeilMint } from '@/hooks/use-yeil-contract'
+import { useYeilContract, useYeilBalanceAt, useYeilTotalSupplyAt } from '@/hooks/use-yeil-contract'
 import { 
   Loader2, 
   CheckCircle2, 
@@ -24,8 +24,7 @@ import {
   Camera,
   Wallet as WalletIcon
 } from 'lucide-react'
-import { formatEther, parseEther } from 'viem'
-import { YEIL_ABI } from '@/lib/contracts/yeil-abi'
+import { formatEther } from 'viem'
 
 export default function YeilDashboard() {
   const { address, isConnected } = useAccount()
@@ -42,6 +41,8 @@ export default function YeilDashboard() {
     refetch,
     mint,
     mintState,
+    burn,
+    burnState,
   } = useYeilContract()
 
   console.log('Token Info:', tokenInfo)
@@ -51,7 +52,8 @@ export default function YeilDashboard() {
   const [snapshotId, setSnapshotId] = useState<number>()
   const [mintTo, setMintTo] = useState('')
   const [mintAmount, setMintAmount] = useState('')
-    const { writeContract, data: hash, isPending, error } = useWriteContract()
+  const [burnFrom, setBurnFrom] = useState('')
+  const [burnAmount, setBurnAmount] = useState('')
   
   const { balance: balanceAtSnapshot, isLoading: isLoadingSnapshot } = useYeilBalanceAt(address, snapshotId)
   const { totalSupply: totalSupplyAtSnapshot, isLoading: isLoadingTotalSupply } = useYeilTotalSupplyAt(snapshotId)
@@ -88,6 +90,19 @@ export default function YeilDashboard() {
       await createSnapshot()
     } catch (err) {
       console.error('Snapshot failed:', err)
+    }
+  }
+
+  const handleBurn = async () => {
+    if (!burnFrom || !burnAmount) return
+    if (burnState.isPending || burnState.isConfirming) return // Prevent double-click
+    
+    try {
+      await burn(burnFrom as `0x${string}`, burnAmount)
+      setBurnFrom('')
+      setBurnAmount('')
+    } catch (err) {
+      console.error('Burn failed:', err)
     }
   }
 
@@ -215,9 +230,10 @@ export default function YeilDashboard() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="transfer" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="transfer">Transfer</TabsTrigger>
             <TabsTrigger value="mint">Mint</TabsTrigger>
+            <TabsTrigger value="burn">Burn</TabsTrigger>
             <TabsTrigger value="snapshot">Snapshot</TabsTrigger>
             <TabsTrigger value="info">Token Info</TabsTrigger>
           </TabsList>
@@ -396,6 +412,101 @@ export default function YeilDashboard() {
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
                       {mintState.error.message}
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Burn Tab */}
+          <TabsContent value="burn" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5" />
+                  Burn Tokens (Owner Only)
+                </CardTitle>
+                <CardDescription>
+                  Destroy {tokenInfo?.symbol || 'YEIL'} tokens from an address
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Only the contract owner can burn tokens. This permanently removes tokens from circulation.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="space-y-2">
+                  <Label htmlFor="burnFrom">Address to Burn From</Label>
+                  <Input
+                    id="burnFrom"
+                    placeholder="0x..."
+                    value={burnFrom}
+                    onChange={(e) => setBurnFrom(e.target.value)}
+                    disabled={burnState.isPending || burnState.isConfirming}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="burnAmount">Amount to Burn</Label>
+                  <Input
+                    id="burnAmount"
+                    type="number"
+                    placeholder="0.0"
+                    value={burnAmount}
+                    onChange={(e) => setBurnAmount(e.target.value)}
+                    disabled={burnState.isPending || burnState.isConfirming}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Current total supply: {tokenInfo?.totalSupply ? formatEther(tokenInfo.totalSupply) : '0'} {tokenInfo?.symbol}
+                  </p>
+                </div>
+
+                <Button
+                  onClick={handleBurn}
+                  disabled={!burnFrom || !burnAmount || burnState.isPending || burnState.isConfirming}
+                  className="w-full"
+                  variant="destructive"
+                >
+                  {burnState.isPending || burnState.isConfirming ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {burnState.isPending ? 'Confirming...' : 'Processing...'}
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="mr-2 h-4 w-4" />
+                      Burn Tokens
+                    </>
+                  )}
+                </Button>
+
+                {burnState.hash && (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Transaction: {burnState.hash.slice(0, 10)}...{burnState.hash.slice(-8)}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {burnState.isSuccess && (
+                  <Alert className="border-green-500">
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    <AlertDescription className="text-green-500">
+                      Tokens burned successfully!
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {burnState.error && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      {burnState.error.message}
                     </AlertDescription>
                   </Alert>
                 )}
